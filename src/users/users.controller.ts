@@ -1,39 +1,38 @@
-
-import { Controller, Get, Param, Post, Body, Delete, Query, Patch } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Delete, Query, Patch, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from "./users.service";
 import { CreateUserstDTO } from './dto/create-user';
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import {AuthService} from "../auth/auth.service";
+import {LoginUserDto} from "./dto/LoginUserDto"
 
 @Controller('users')
 export class UsersController {
+    // constructor(private AuthService: AuthService) { };
     constructor(private UsersService: UsersService) { };
+
     @Get()
     async getUsers() {
         const users = await this.UsersService.getAllUsers();
         return users
     };
 
-    @Get(":userId")
-    async getUser(@Param("userId") userId: string) {
-        const user = await this.UsersService.getUserById(Number(userId));
+    @Post("login")
+    async getUser(@Request() req) : Promise<any> {
+        const user = await this.UsersService.findByLogin(req.user);
         return user;
     };
-
-    @Post()
-    async addUser(@Body() CreateUserstDTO: CreateUserstDTO) {
-        const newUser = await this.UsersService.createUser(CreateUserstDTO);
-        return newUser;
-    };
-
-    @Patch(":userId")
-    async editUser(@Param("userId") userId, @Body() CreateUserstDTO: CreateUserstDTO) {
-        const editedUser = await this.UsersService.editUser(userId, CreateUserstDTO);
-        return editedUser;
-    };
-
-    @Delete(":userId")
-    async deleteUser(@Param("userId") userId: number) {
-        const deletedUser = await this.UsersService.deleteUser(userId);
-        return deletedUser;
+    @UseGuards(JwtAuthGuard)
+    @Get("protected")
+    protectedRoute(){
+        return this.UsersService.protectedRoute()
     }
+   @Get(":id")
+   async getUserById(@Param() id:number){
+    const user = await this.UsersService.getUserById(id);
+    return user
+   }
+    
+
+   
 
 }

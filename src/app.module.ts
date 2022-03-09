@@ -3,6 +3,8 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import typeOrmConfig = require("./typeorm.config")
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { PostsModule } from './posts/posts.module';
 
 
 @Module({
@@ -27,7 +29,10 @@ import { ConfigModule } from '@nestjs/config';
           migrationsDir: 'src/migration'
       }
     }
-    )
+    ),
+    AuthModule,
+    PostsModule
+    
   ],
   controllers: [],
   providers: [],
