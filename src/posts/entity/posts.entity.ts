@@ -1,23 +1,27 @@
-import { Column, Entity, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
- 
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { User } from "../../users/entity/user.entity"
 @Entity()
-export class Post extends BaseEntity {
+class Post {
   @PrimaryGeneratedColumn()
-  public id?: number;
- 
-  @Column({ unique: true })
+  public id: number;
+
+  @Column()
   public title: string;
- 
+
   @Column()
-  public creator: string;
- 
-  @Column()
+  public content: string;
+
+  @Column({ nullable: true })
   public selectedFile: string;
 
   @Column({
-      default: new Date()
+    default: new Date(),
+    nullable: true
   })
   createdAt: Date
+
+  @ManyToOne(() => User, (creator: User) => creator.posts)
+  public creator: User;
+
 }
- 
-export default Post;
+export default Post

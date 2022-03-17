@@ -3,7 +3,7 @@ import { UserRepository } from './user-repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserstDTO } from "./dto/create-user";
 import { LoginUserDto } from "./dto/LoginUserDto";
-import { UserDto } from "./dto/UserDto";
+
 import * as bcrypt from "bcrypt";
 
 
@@ -23,9 +23,9 @@ export class UsersService {
         }
 
         // compare passwords    
-        const passwordAreEqual = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password);
 
-        if (!passwordAreEqual) {
+        if (!isMatch) {
             throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
         }
 
@@ -36,34 +36,37 @@ export class UsersService {
         const users = await this.UserRepository.find();
         return users;
     };
+    async getById(id: number) {
+        const user = await this.UserRepository.findOne({ id });
+        if (user) {
+          return user;
+        }
+        throw new HttpException('User with this id does not exist', HttpStatus.NOT_FOUND);
+      }
 
-    async findOne(options?: object) {
-        const user = await this.UserRepository.findOne(options);
-        return user;
-    }
-
-
-    async findByPayload({ email }) {
-        return await this.UserRepository.findOne({
-            where: { email }
-        });
-    }
+    async getByEmail(email: string) {
+        const user = await this.UserRepository.findOne({ email });
+        if (user) {
+          return user;
+        }
+        throw new HttpException('User with this email does not exist', HttpStatus.NOT_FOUND);
+      }
 
    
-    async createUser(userDto: CreateUserstDTO) {
-        const { name, password, email } = userDto;
+    async createUser(userData: CreateUserstDTO) {
+        const { name, password, email } = userData;
 
         // check if the user exists in the db    
-        const userInDb = await this.UserRepository.findOne({
+        const userExists = await this.UserRepository.findOne({
             where: { email }
         });
-        if (userInDb) {
+        if (userExists) {
             throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
         }
 
-        const user = await this.UserRepository.create({ name, password, email, });
-        await this.UserRepository.save(user);
-        return user;
+        const newUser = await this.UserRepository.create({ name, password, email, });
+        await this.UserRepository.save(newUser);
+        return newUser;
     }
     protectedRoute (){
         return "this is a protected Route"
@@ -78,6 +81,12 @@ export class UsersService {
         return foundUser;
 
     };
+
+    async create(userData: CreateUserstDTO) {
+        const newUser = await this.UserRepository.create(userData);
+        await this.UserRepository.save(newUser);
+        return newUser;
+      }
 
 
     
